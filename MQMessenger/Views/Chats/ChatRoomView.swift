@@ -168,7 +168,7 @@ struct ChatRoomView: View {
                 .padding(.top, 8)
             }
             .scrollDismissesKeyboard(.interactively)
-            .onChange(of: vm.messages.count) { _, _ in
+            .onChange(of: vm.messages.count) { _ in
                 withAnimation(.easeOut(duration: 0.2)) {
                     proxy.scrollTo("bottom", anchor: .bottom)
                 }

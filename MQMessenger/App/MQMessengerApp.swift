@@ -37,16 +37,12 @@ struct MQMessengerApp: App {
     private func configureAppearance() {
         let navAppearance = UINavigationBarAppearance()
         navAppearance.configureWithDefaultBackground()
-        navAppearance.backgroundColor = .white
         UINavigationBar.appearance().standardAppearance = navAppearance
         UINavigationBar.appearance().scrollEdgeAppearance = navAppearance
 
         let tabAppearance = UITabBarAppearance()
         tabAppearance.configureWithDefaultBackground()
-        tabAppearance.backgroundColor = .white
         UITabBar.appearance().standardAppearance = tabAppearance
         UITabBar.appearance().scrollEdgeAppearance = tabAppearance
-
-        UIView.appearance().backgroundColor = .white
     }
 }

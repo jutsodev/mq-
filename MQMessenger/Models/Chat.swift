@@ -114,7 +114,7 @@ struct ChatsResponse: Codable {
 
 struct ChatDetailResponse: Codable {
     let chat: Chat
-    let members: [ChatMember]
+    var members: [ChatMember]
     let myRole: String?
 
     enum CodingKeys: String, CodingKey {

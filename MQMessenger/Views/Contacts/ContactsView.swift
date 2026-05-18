@@ -164,7 +164,7 @@ struct UserSearchView: View {
                 )
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
-                .onChange(of: vm.query) { _, _ in vm.search() }
+                .onChange(of: vm.query) { _ in vm.search() }
 
                 if vm.isSearching {
                     Spacer()

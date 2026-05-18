@@ -6,52 +6,47 @@ struct LoginView: View {
 
     var body: some View {
         ZStack {
-            LinearGradient(
-                colors: [
-                    Color.blue.opacity(0.15),
-                    Color.purple.opacity(0.1),
-                    Color.cyan.opacity(0.08),
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
+            Color(.systemGroupedBackground)
+                .ignoresSafeArea()
+
+            VStack {
+                Color(red: 0.49, green: 0.36, blue: 0.99)
+                    .frame(height: 0)
+                    .background(
+                        Color(red: 0.49, green: 0.36, blue: 0.99)
+                            .frame(height: 200)
+                            .offset(y: -100)
+                    )
+                Spacer()
+            }
             .ignoresSafeArea()
 
             VStack(spacing: 0) {
                 Spacer()
 
-                VStack(spacing: 24) {
-                    ZStack {
-                        Circle()
-                            .fill(
-                                LinearGradient(
-                                    colors: [.blue, .cyan],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .frame(width: 100, height: 100)
-                            .shadow(color: .blue.opacity(0.3), radius: 20, y: 8)
+                VStack(spacing: 20) {
+                    Image("mq-logo")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 80, height: 80)
+                        .clipShape(RoundedRectangle(cornerRadius: 18))
+                        .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
 
-                        Text("MQ")
-                            .font(.system(size: 36, weight: .bold, design: .rounded))
-                            .foregroundColor(.white)
-                    }
-
-                    VStack(spacing: 8) {
+                    VStack(spacing: 6) {
                         Text("welcome".localized)
-                            .font(.system(size: 28, weight: .bold))
+                            .font(.system(size: 26, weight: .bold))
+                            .foregroundColor(.primary)
 
                         Text("welcome_subtitle".localized)
-                            .font(.system(size: 16))
+                            .font(.system(size: 15))
                             .foregroundColor(.secondary)
                     }
                 }
-                .padding(.bottom, 40)
+                .padding(.bottom, 32)
 
-                VStack(spacing: 20) {
-                    VStack(spacing: 16) {
-                        HStack(spacing: 12) {
+                VStack(spacing: 16) {
+                    VStack(spacing: 12) {
+                        HStack(spacing: 10) {
                             Menu {
                                 ForEach(AuthViewModel.countryCodes, id: \.0) { code, label in
                                     Button("\(label) \(code)") {
@@ -60,21 +55,33 @@ struct LoginView: View {
                                 }
                             } label: {
                                 Text(vm.countryCode)
-                                    .font(.system(size: 18, weight: .medium))
+                                    .font(.system(size: 17, weight: .medium))
                                     .foregroundColor(.primary)
                                     .padding(.horizontal, 14)
-                                    .padding(.vertical, 14)
+                                    .padding(.vertical, 12)
                                     .background(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .fill(.ultraThinMaterial)
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .fill(Color(.systemBackground))
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 10)
+                                                    .stroke(Color(.separator), lineWidth: 0.5)
+                                            )
                                     )
                             }
 
                             TextField("enter_phone".localized, text: $vm.phone)
-                                .font(.system(size: 18))
+                                .font(.system(size: 17))
                                 .keyboardType(.phonePad)
-                                .glassTextField()
-                                .onChange(of: vm.phone) { _, newValue in
+                                .padding(12)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .fill(Color(.systemBackground))
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 10)
+                                                .stroke(Color(.separator), lineWidth: 0.5)
+                                        )
+                                )
+                                .onChange(of: vm.phone) { newValue in
                                     vm.formatPhoneInput(newValue)
                                 }
                         }
@@ -92,7 +99,7 @@ struct LoginView: View {
                             .padding(.vertical, 8)
                             .background(
                                 RoundedRectangle(cornerRadius: 8)
-                                    .fill(Color.red.opacity(0.1))
+                                    .fill(Color.red.opacity(0.08))
                             )
                     }
 
@@ -111,25 +118,22 @@ struct LoginView: View {
                         }
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
+                        .padding(.vertical, 14)
                         .background(
-                            RoundedRectangle(cornerRadius: 14)
-                                .fill(
-                                    LinearGradient(
-                                        colors: vm.isPhoneValid
-                                            ? [.blue, .blue.opacity(0.8)]
-                                            : [.gray, .gray.opacity(0.8)],
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                    )
-                                )
-                                .shadow(color: .blue.opacity(vm.isPhoneValid ? 0.3 : 0), radius: 12, y: 4)
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(vm.isPhoneValid
+                                    ? Color(red: 0.49, green: 0.36, blue: 0.99)
+                                    : Color.gray)
                         )
                     }
                     .disabled(!vm.isPhoneValid || vm.isLoading)
                 }
-                .padding(.horizontal, 24)
-                .glassCard(padding: 24)
+                .padding(20)
+                .background(
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(Color(.systemBackground))
+                        .shadow(color: .black.opacity(0.06), radius: 8, y: 2)
+                )
                 .padding(.horizontal, 16)
 
                 Spacer()
@@ -148,7 +152,7 @@ struct LoginView: View {
                         .padding(.vertical, 8)
                         .background(
                             Capsule()
-                                .fill(.ultraThinMaterial)
+                                .fill(Color(.systemGray6))
                         )
                     }
                 }

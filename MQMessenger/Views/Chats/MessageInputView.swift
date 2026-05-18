@@ -32,7 +32,7 @@ struct MessageInputView: View {
         .animation(.spring(response: 0.35, dampingFraction: 0.8), value: showAttachMenu)
         .animation(.easeInOut(duration: 0.2), value: showFormatBar)
         .photosPicker(isPresented: $showMediaPicker, selection: $selectedPhoto, matching: .images)
-        .onChange(of: selectedPhoto) { _, newItem in
+        .onChange(of: selectedPhoto) { newItem in
             handlePhotoSelection(newItem)
         }
         .sheet(isPresented: $showDocumentPicker) {
@@ -72,7 +72,7 @@ struct MessageInputView: View {
                     .font(.system(size: 16))
                     .lineLimit(1...20)
                     .focused($isInputFocused)
-                    .onChange(of: vm.messageText) { _, _ in
+                    .onChange(of: vm.messageText) { _ in
                         vm.handleTyping()
                     }
 

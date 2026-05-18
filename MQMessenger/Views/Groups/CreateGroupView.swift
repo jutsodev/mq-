@@ -118,7 +118,7 @@ struct CreateGroupView: View {
             GlassSearchBar(text: $searchQuery, placeholder: "search_users".localized)
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
-                .onChange(of: searchQuery) { _, _ in searchUsers() }
+                .onChange(of: searchQuery) { _ in searchUsers() }
 
             if !selectedMembers.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {

@@ -43,8 +43,12 @@ jobs:
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
-            AD_HOC_CODE_SIGNING_ALLOWED=YES \
-            | tail -50
+            AD_HOC_CODE_SIGNING_ALLOWED=YES
+          BUILD_EXIT=$?
+          if [ $BUILD_EXIT -ne 0 ]; then
+            echo "BUILD FAILED with exit code $BUILD_EXIT"
+            exit $BUILD_EXIT
+          fi
 
       - name: Package unsigned IPA
         run: |
@@ -59,9 +63,9 @@ jobs:
             mkdir -p build/ipa/Payload
             cp -r "$APP_PATH" build/ipa/Payload/
             cd build/ipa
-            zip -r MQMessenger-unsigned.ipa Payload
+            zip -r mq.ipa Payload
             echo "IPA created successfully"
-            ls -lh MQMessenger-unsigned.ipa
+            ls -lh mq.ipa
           else
             echo "ERROR: MQMessenger.app not found"
             find build/DerivedData -name "*.app" -type d | head -10
@@ -71,8 +75,8 @@ jobs:
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
-          name: MQMessenger-unsigned
-          path: MQMessenger/build/ipa/MQMessenger-unsigned.ipa
+          name: mq
+          path: MQMessenger/build/ipa/mq.ipa
           if-no-files-found: error
 
   server-check:
