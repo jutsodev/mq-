@@ -1,0 +1,38 @@
+# Node
+node_modules/
+server/messenger.db
+server/uploads/
+
+# macOS
+.DS_Store
+*.swp
+
+# Xcode
+*.xcodeproj
+*.xcworkspace
+xcuserdata/
+DerivedData/
+build/
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.xccheckout
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Packages/
+
+# IDE
+.idea/
+.vscode/
+
+# Environment
+.env
+.env.local

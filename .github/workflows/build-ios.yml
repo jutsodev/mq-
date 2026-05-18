@@ -1,0 +1,100 @@
+name: Build iOS App
+
+on:
+  push:
+    branches: [main, 'devin/**']
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_15.4.app || sudo xcode-select -s /Applications/Xcode.app
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode Project
+        run: |
+          cd MQMessenger
+          xcodegen generate
+
+      - name: Resolve Dependencies
+        run: |
+          cd MQMessenger
+          xcodebuild -resolvePackageDependencies \
+            -project MQMessenger.xcodeproj \
+            -scheme MQMessenger
+
+      - name: Build App
+        run: |
+          cd MQMessenger
+          xcodebuild build \
+            -project MQMessenger.xcodeproj \
+            -scheme MQMessenger \
+            -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' \
+            -configuration Release \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            | tail -50
+
+      - name: Archive App
+        run: |
+          cd MQMessenger
+          xcodebuild archive \
+            -project MQMessenger.xcodeproj \
+            -scheme MQMessenger \
+            -archivePath build/MQMessenger.xcarchive \
+            -destination 'generic/platform=iOS' \
+            -configuration Release \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            SKIP_INSTALL=NO \
+            | tail -50
+
+      - name: Export IPA (unsigned)
+        run: |
+          cd MQMessenger
+          mkdir -p build/ipa
+          if [ -d "build/MQMessenger.xcarchive/Products/Applications" ]; then
+            cd build/MQMessenger.xcarchive/Products/Applications
+            mkdir -p Payload
+            cp -r MQMessenger.app Payload/ 2>/dev/null || cp -r *.app Payload/
+            zip -r ../../../ipa/MQMessenger.ipa Payload
+          else
+            echo "Archive Products not found at expected path, listing archive contents:"
+            find build/MQMessenger.xcarchive -type d | head -30
+          fi
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MQMessenger-unsigned
+          path: MQMessenger/build/ipa/MQMessenger.ipa
+          if-no-files-found: warn
+
+  server-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install server dependencies
+        run: cd server && npm install
+
+      - name: Verify server starts
+        run: |
+          cd server
+          timeout 10 node index.js &
+          sleep 3
+          curl -f http://localhost:4000/api/health || exit 1
+          kill %1 2>/dev/null || true
