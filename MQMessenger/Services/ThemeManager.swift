@@ -83,7 +83,7 @@ final class ThemeManager: ObservableObject {
 
     private init() {
         currentTheme = UserDefaults.standard.string(forKey: "mq_theme") ?? "light"
-        accentColorHex = UserDefaults.standard.string(forKey: "mq_accent_color") ?? "#007AFF"
+        accentColorHex = UserDefaults.standard.string(forKey: "mq_accent_color") ?? "#7C5CFC"
         wallpaperName = UserDefaults.standard.string(forKey: "mq_wallpaper") ?? "default"
         fontSize = CGFloat(UserDefaults.standard.double(forKey: "mq_font_size").nonZero ?? 16)
         messageCornerRadius = CGFloat(UserDefaults.standard.double(forKey: "mq_corner_radius").nonZero ?? 18)

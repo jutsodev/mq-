@@ -11,7 +11,7 @@ settings:
   base:
     SWIFT_VERSION: "5.9"
     TARGETED_DEVICE_FAMILY: "1,2"
-    INFOPLIST_FILE: MQMessenger/Info.plist
+    INFOPLIST_FILE: Info.plist
     ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
     CODE_SIGN_IDENTITY: ""
     CODE_SIGNING_REQUIRED: "NO"
@@ -22,15 +22,17 @@ targets:
     type: application
     platform: iOS
     sources:
-      - path: MQMessenger
-        excludes:
-          - "project.yml"
+      - path: App
+      - path: Models
+      - path: Services
+      - path: ViewModels
+      - path: Views
     resources:
-      - path: MQMessenger/Resources/Assets.xcassets
+      - path: Resources/Assets.xcassets
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.mq.messenger
-        INFOPLIST_FILE: MQMessenger/Info.plist
+        INFOPLIST_FILE: Info.plist
         GENERATE_INFOPLIST_FILE: false
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
       configs:

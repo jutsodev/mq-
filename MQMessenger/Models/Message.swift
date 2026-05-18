@@ -9,6 +9,7 @@ struct Message: Codable, Identifiable, Equatable {
     var senderUsername: String?
     var type: String
     var content: String?
+    var format: String?
     var mediaUrl: String?
     var mediaType: String?
     var replyToId: String?
@@ -25,7 +26,7 @@ struct Message: Codable, Identifiable, Equatable {
     var updatedAt: Int
 
     enum CodingKeys: String, CodingKey {
-        case id, type, content, reactions
+        case id, type, content, format, reactions
         case chatId = "chat_id"
         case senderId = "sender_id"
         case senderName = "sender_name"
@@ -72,6 +73,14 @@ struct Message: Codable, Identifiable, Equatable {
         type == "image" || type == "video" || type == "audio" || type == "file"
     }
 
+    var isHTML: Bool {
+        format == "html"
+    }
+
+    var isSavedMessages: Bool {
+        senderId == chatId
+    }
+
     var mediaFullURL: URL? {
         guard let mediaUrl = mediaUrl else { return nil }
         return URL(string: "\(APIService.baseURL)\(mediaUrl)")
@@ -106,12 +115,13 @@ struct SendMessageData: Codable {
     let chatId: String
     let content: String?
     let type: String
+    var format: String?
     var replyToId: String?
     var mediaUrl: String?
     var mediaType: String?
 
     enum CodingKeys: String, CodingKey {
-        case content, type
+        case content, type, format
         case chatId = "chat_id"
         case replyToId = "reply_to_id"
         case mediaUrl = "media_url"

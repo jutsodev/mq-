@@ -22,10 +22,11 @@ final class ChatRoomViewModel: ObservableObject {
     @Published var isSelecting = false
     @Published var typingUserNames: [String] = []
     @Published var errorMessage: String?
+    @Published var messageFormat: String = "plain"
 
     let chatId: String
     private var cancellables = Set<AnyCancellable>()
-    private var hasMoreMessages = true
+    @Published var hasMoreMessages = true
     private var typingTimer: Timer?
 
     init(chatId: String) {
@@ -92,7 +93,9 @@ final class ChatRoomViewModel: ObservableObject {
             } else {
                 messages.insert(contentsOf: response.messages, at: 0)
             }
-        } catch {}
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
 
     func sendMessage() async {
@@ -101,7 +104,9 @@ final class ChatRoomViewModel: ObservableObject {
 
         let replyId = replyingTo?.id
         let editMsg = editingMessage
+        let format = messageFormat
         messageText = ""
+        messageFormat = "plain"
         replyingTo = nil
         editingMessage = nil
         isSending = true
@@ -115,7 +120,7 @@ final class ChatRoomViewModel: ObservableObject {
                 }
             } else {
                 let response = try await APIService.shared.sendMessage(
-                    chatId: chatId, content: text, replyToId: replyId)
+                    chatId: chatId, content: text, replyToId: replyId, format: format)
                 _ = response.message
             }
             isSending = false
@@ -149,7 +154,9 @@ final class ChatRoomViewModel: ObservableObject {
     func reactToMessage(_ messageId: String, emoji: String) async {
         do {
             try await APIService.shared.reactToMessage(chatId: chatId, messageId: messageId, emoji: emoji)
-        } catch {}
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
 
     func pinMessage(_ messageId: String) async {
@@ -160,7 +167,9 @@ final class ChatRoomViewModel: ObservableObject {
             if let index = messages.firstIndex(where: { $0.id == messageId }) {
                 messages[index].isPinned = isPinned
             }
-        } catch {}
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
 
     func starMessage(_ messageId: String) async {
@@ -169,7 +178,9 @@ final class ChatRoomViewModel: ObservableObject {
             if let index = messages.firstIndex(where: { $0.id == messageId }) {
                 messages[index].isStarred.toggle()
             }
-        } catch {}
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
 
     func forwardMessage(_ messageId: String, to chatIds: [String]) async {
@@ -193,9 +204,10 @@ final class ChatRoomViewModel: ObservableObject {
     }
 
     func cancelReplyOrEdit() {
+        let wasEditing = editingMessage != nil
         replyingTo = nil
         editingMessage = nil
-        if editingMessage != nil { messageText = "" }
+        if wasEditing { messageText = "" }
     }
 
     func copyMessage(_ message: Message) {
@@ -211,7 +223,9 @@ final class ChatRoomViewModel: ObservableObject {
         do {
             let response = try await APIService.shared.searchMessages(chatId: chatId, query: query)
             searchResults = response.messages
-        } catch {}
+        } catch {
+            errorMessage = error.localizedDescription
+        }
         isSearching = false
     }
 
@@ -246,14 +260,18 @@ final class ChatRoomViewModel: ObservableObject {
     func updateMemberRole(_ userId: String, role: String) async {
         do {
             try await APIService.shared.updateMemberRole(chatId: chatId, userId: userId, role: role)
-        } catch {}
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
 
     func leaveChat() async {
         guard let userId = AuthManager.shared.currentUser?.id else { return }
         do {
             try await APIService.shared.removeMember(chatId: chatId, userId: userId)
-        } catch {}
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
 
     private func markLastAsRead() {

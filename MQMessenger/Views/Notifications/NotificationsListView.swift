@@ -10,7 +10,7 @@ struct NotificationsListView: View {
                 themeManager.backgroundColor.ignoresSafeArea()
 
                 if notificationsVM.isLoading && notificationsVM.notifications.isEmpty {
-                    ProgressView()
+                    ShimmerLoadingList(count: 6)
                 } else if notificationsVM.notifications.isEmpty {
                     EmptyStateView(
                         icon: "bell.slash",

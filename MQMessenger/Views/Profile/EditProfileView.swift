@@ -80,7 +80,7 @@ struct EditProfileView: View {
                         .opacity(0.7)
                 }
             }
-            .onChange(of: selectedPhoto) { _, newItem in
+            .onChange(of: selectedPhoto) { newItem in
                 handlePhotoSelection(newItem)
             }
 

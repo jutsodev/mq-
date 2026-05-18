@@ -18,9 +18,8 @@ struct ChatsListView: View {
                         .padding(.bottom, 4)
 
                     if chatsVM.isLoading && chatsVM.chats.isEmpty {
-                        Spacer()
-                        ProgressView()
-                        Spacer()
+                        ShimmerLoadingList(count: 10)
+                            .padding(.top, 8)
                     } else if chatsVM.filteredChats.isEmpty {
                         Spacer()
                         EmptyStateView(
@@ -142,7 +141,19 @@ struct ChatRowView: View {
     var body: some View {
         HStack(spacing: 12) {
             ZStack {
-                if chat.isGroup || chat.isChannel {
+                if chat.isSaved {
+                    ZStack {
+                        Circle()
+                            .fill(
+                                LinearGradient(colors: [.purple, .blue],
+                                               startPoint: .topLeading, endPoint: .bottomTrailing)
+                            )
+                            .frame(width: 52, height: 52)
+                        Image(systemName: "bookmark.fill")
+                            .font(.system(size: 22))
+                            .foregroundColor(.white)
+                    }
+                } else if chat.isGroup || chat.isChannel {
                     AvatarView(
                         name: chat.displayName,
                         avatarURL: chat.avatarURL,

@@ -40,7 +40,8 @@ struct Chat: Codable, Identifiable, Equatable {
     }
 
     var displayName: String {
-        name ?? "Chat"
+        if isSaved { return LocalizationManager.shared.string(for: "saved_messages") }
+        return name ?? "Chat"
     }
 
     var avatarURL: URL? {
@@ -51,6 +52,7 @@ struct Chat: Codable, Identifiable, Equatable {
     var isGroup: Bool { type == "group" }
     var isChannel: Bool { type == "channel" }
     var isPrivate: Bool { type == "private" }
+    var isSaved: Bool { type == "saved" }
 
     var lastMessagePreview: String {
         guard let msg = lastMessage else { return "" }
@@ -112,7 +114,7 @@ struct ChatsResponse: Codable {
 
 struct ChatDetailResponse: Codable {
     let chat: Chat
-    let members: [ChatMember]
+    var members: [ChatMember]
     let myRole: String?
 
     enum CodingKeys: String, CodingKey {
