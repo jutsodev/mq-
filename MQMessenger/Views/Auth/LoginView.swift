@@ -8,9 +8,9 @@ struct LoginView: View {
         ZStack {
             LinearGradient(
                 colors: [
-                    Color.blue.opacity(0.15),
-                    Color.purple.opacity(0.1),
-                    Color.cyan.opacity(0.08),
+                    Color(red: 0.04, green: 0.04, blue: 0.1),
+                    Color(red: 0.07, green: 0.05, blue: 0.18),
+                    Color(red: 0.1, green: 0.06, blue: 0.22),
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -21,22 +21,12 @@ struct LoginView: View {
                 Spacer()
 
                 VStack(spacing: 24) {
-                    ZStack {
-                        Circle()
-                            .fill(
-                                LinearGradient(
-                                    colors: [.blue, .cyan],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .frame(width: 100, height: 100)
-                            .shadow(color: .blue.opacity(0.3), radius: 20, y: 8)
-
-                        Text("MQ")
-                            .font(.system(size: 36, weight: .bold, design: .rounded))
-                            .foregroundColor(.white)
-                    }
+                    Image("mq-logo")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 100, height: 100)
+                        .clipShape(RoundedRectangle(cornerRadius: 22))
+                        .shadow(color: .purple.opacity(0.4), radius: 20, y: 8)
 
                     VStack(spacing: 8) {
                         Text("welcome".localized)
@@ -117,13 +107,13 @@ struct LoginView: View {
                                 .fill(
                                     LinearGradient(
                                         colors: vm.isPhoneValid
-                                            ? [.blue, .blue.opacity(0.8)]
+                                            ? [Color(red: 0.49, green: 0.36, blue: 0.99), Color(red: 0.57, green: 0.47, blue: 1.0)]
                                             : [.gray, .gray.opacity(0.8)],
                                         startPoint: .leading,
                                         endPoint: .trailing
                                     )
                                 )
-                                .shadow(color: .blue.opacity(vm.isPhoneValid ? 0.3 : 0), radius: 12, y: 4)
+                                .shadow(color: Color(red: 0.49, green: 0.36, blue: 0.99).opacity(vm.isPhoneValid ? 0.4 : 0), radius: 12, y: 4)
                         )
                     }
                     .disabled(!vm.isPhoneValid || vm.isLoading)
