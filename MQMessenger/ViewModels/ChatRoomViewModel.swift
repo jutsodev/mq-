@@ -22,6 +22,7 @@ final class ChatRoomViewModel: ObservableObject {
     @Published var isSelecting = false
     @Published var typingUserNames: [String] = []
     @Published var errorMessage: String?
+    @Published var messageFormat: String = "plain"
 
     let chatId: String
     private var cancellables = Set<AnyCancellable>()
@@ -101,7 +102,9 @@ final class ChatRoomViewModel: ObservableObject {
 
         let replyId = replyingTo?.id
         let editMsg = editingMessage
+        let format = messageFormat
         messageText = ""
+        messageFormat = "plain"
         replyingTo = nil
         editingMessage = nil
         isSending = true
@@ -115,7 +118,7 @@ final class ChatRoomViewModel: ObservableObject {
                 }
             } else {
                 let response = try await APIService.shared.sendMessage(
-                    chatId: chatId, content: text, replyToId: replyId)
+                    chatId: chatId, content: text, replyToId: replyId, format: format)
                 _ = response.message
             }
             isSending = false

@@ -31,8 +31,8 @@ const io = new Server(httpServer, {
 });
 
 app.use(cors());
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '100mb' }));
+app.use(express.urlencoded({ extended: true, limit: '100mb' }));
 
 const uploadsDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
@@ -56,17 +56,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 50 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    const allowed = [
-      'image/jpeg', 'image/png', 'image/gif', 'image/webp',
-      'video/mp4', 'video/webm',
-      'audio/mpeg', 'audio/ogg', 'audio/wav', 'audio/webm',
-      'application/pdf', 'application/zip',
-      'text/plain',
-    ];
-    cb(null, allowed.includes(file.mimetype));
-  },
+  limits: { fileSize: 500 * 1024 * 1024 },
 });
 
 app.post('/api/upload', upload.single('file'), (req, res) => {

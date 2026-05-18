@@ -142,7 +142,19 @@ struct ChatRowView: View {
     var body: some View {
         HStack(spacing: 12) {
             ZStack {
-                if chat.isGroup || chat.isChannel {
+                if chat.isSaved {
+                    ZStack {
+                        Circle()
+                            .fill(
+                                LinearGradient(colors: [.purple, .blue],
+                                               startPoint: .topLeading, endPoint: .bottomTrailing)
+                            )
+                            .frame(width: 52, height: 52)
+                        Image(systemName: "bookmark.fill")
+                            .font(.system(size: 22))
+                            .foregroundColor(.white)
+                    }
+                } else if chat.isGroup || chat.isChannel {
                     AvatarView(
                         name: chat.displayName,
                         avatarURL: chat.avatarURL,

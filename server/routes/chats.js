@@ -302,7 +302,7 @@ router.get('/:chatId/messages', (req, res) => {
 });
 
 router.post('/:chatId/messages', (req, res) => {
-  const { content, type, reply_to_id, forwarded_from, media_url, media_type } = req.body;
+  const { content, type, reply_to_id, forwarded_from, media_url, media_type, format } = req.body;
 
   const member = db.prepare('SELECT * FROM chat_members WHERE chat_id = ? AND user_id = ?')
     .get(req.params.chatId, req.userId);
@@ -339,6 +339,7 @@ router.post('/:chatId/messages', (req, res) => {
     sender_username: sender.username,
     type: type || 'text',
     content,
+    format: format || 'plain',
     media_url: media_url || null,
     media_type: media_type || null,
     reply_to_id: reply_to_id || null,

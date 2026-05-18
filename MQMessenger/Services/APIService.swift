@@ -192,17 +192,19 @@ final class APIService {
     }
 
     func sendMessage(chatId: String, content: String?, type: String = "text",
-                     replyToId: String? = nil, mediaUrl: String? = nil, mediaType: String? = nil) async throws -> MessageResponse {
+                     replyToId: String? = nil, mediaUrl: String? = nil, mediaType: String? = nil,
+                     format: String? = nil) async throws -> MessageResponse {
         struct Body: Encodable {
             let content: String?
             let type: String
+            let format: String?
             let reply_to_id: String?
             let media_url: String?
             let media_type: String?
         }
         return try await request("/chats/\(chatId)/messages", method: "POST",
-            body: Body(content: content, type: type, reply_to_id: replyToId,
-                       media_url: mediaUrl, media_type: mediaType))
+            body: Body(content: content, type: type, format: format,
+                       reply_to_id: replyToId, media_url: mediaUrl, media_type: mediaType))
     }
 
     func editMessage(chatId: String, messageId: String, content: String) async throws {

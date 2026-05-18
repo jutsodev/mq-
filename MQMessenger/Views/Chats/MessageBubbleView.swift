@@ -99,6 +99,90 @@ struct MessageBubbleView: View {
         )
     }
 
+    private func renderContent(_ content: String) -> Text {
+        if message.isHTML {
+            return parseHTMLToText(content)
+        }
+        return Text(content)
+    }
+
+    private func parseHTMLToText(_ html: String) -> Text {
+        var result = Text("")
+        var remaining = html
+
+        while !remaining.isEmpty {
+            if let boldRange = remaining.range(of: "<b>") {
+                let before = String(remaining[remaining.startIndex..<boldRange.lowerBound])
+                if !before.isEmpty {
+                    result = result + Text(before)
+                }
+                remaining = String(remaining[boldRange.upperBound...])
+                if let endRange = remaining.range(of: "</b>") {
+                    let boldText = String(remaining[remaining.startIndex..<endRange.lowerBound])
+                    result = result + Text(boldText).bold()
+                    remaining = String(remaining[endRange.upperBound...])
+                }
+            } else if let italicRange = remaining.range(of: "<i>") {
+                let before = String(remaining[remaining.startIndex..<italicRange.lowerBound])
+                if !before.isEmpty {
+                    result = result + Text(before)
+                }
+                remaining = String(remaining[italicRange.upperBound...])
+                if let endRange = remaining.range(of: "</i>") {
+                    let italicText = String(remaining[remaining.startIndex..<endRange.lowerBound])
+                    result = result + Text(italicText).italic()
+                    remaining = String(remaining[endRange.upperBound...])
+                }
+            } else if let codeRange = remaining.range(of: "<code>") {
+                let before = String(remaining[remaining.startIndex..<codeRange.lowerBound])
+                if !before.isEmpty {
+                    result = result + Text(before)
+                }
+                remaining = String(remaining[codeRange.upperBound...])
+                if let endRange = remaining.range(of: "</code>") {
+                    let codeText = String(remaining[remaining.startIndex..<endRange.lowerBound])
+                    result = result + Text(codeText).font(.system(.body, design: .monospaced))
+                    remaining = String(remaining[endRange.upperBound...])
+                }
+            } else if let uRange = remaining.range(of: "<u>") {
+                let before = String(remaining[remaining.startIndex..<uRange.lowerBound])
+                if !before.isEmpty {
+                    result = result + Text(before)
+                }
+                remaining = String(remaining[uRange.upperBound...])
+                if let endRange = remaining.range(of: "</u>") {
+                    let underlineText = String(remaining[remaining.startIndex..<endRange.lowerBound])
+                    result = result + Text(underlineText).underline()
+                    remaining = String(remaining[endRange.upperBound...])
+                }
+            } else if let sRange = remaining.range(of: "<s>") {
+                let before = String(remaining[remaining.startIndex..<sRange.lowerBound])
+                if !before.isEmpty {
+                    result = result + Text(before)
+                }
+                remaining = String(remaining[sRange.upperBound...])
+                if let endRange = remaining.range(of: "</s>") {
+                    let strikeText = String(remaining[remaining.startIndex..<endRange.lowerBound])
+                    result = result + Text(strikeText).strikethrough()
+                    remaining = String(remaining[endRange.upperBound...])
+                }
+            } else if let brRange = remaining.range(of: "<br>") {
+                let before = String(remaining[remaining.startIndex..<brRange.lowerBound])
+                if !before.isEmpty {
+                    result = result + Text(before)
+                }
+                result = result + Text("\n")
+                remaining = String(remaining[brRange.upperBound...])
+            } else {
+                let cleaned = remaining
+                    .replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
+                result = result + Text(cleaned)
+                remaining = ""
+            }
+        }
+        return result
+    }
+
     private func textBubble(_ content: String) -> some View {
         VStack(alignment: .trailing, spacing: 4) {
             if !isOwnMessage, let name = message.senderName,
@@ -108,7 +192,7 @@ struct MessageBubbleView: View {
                     .foregroundColor(themeManager.accentColor)
             }
 
-            Text(content)
+            renderContent(content)
                 .font(.system(size: themeManager.fontSize))
                 .foregroundColor(isOwnMessage ? .white : .primary)
                 .textSelection(.enabled)

@@ -25,6 +25,22 @@ router.post('/login', (req, res) => {
   db.prepare('UPDATE users SET status = ?, last_seen = ? WHERE id = ?')
     .run('online', Math.floor(Date.now() / 1000), user.id);
 
+  const savedChat = db.prepare(`
+    SELECT c.id FROM chats c
+    JOIN chat_members cm ON cm.chat_id = c.id
+    WHERE c.type = 'saved' AND cm.user_id = ?
+  `).get(user.id);
+
+  if (!savedChat) {
+    const savedId = uuid();
+    db.prepare(`
+      INSERT INTO chats (id, type, name, owner_id) VALUES (?, 'saved', 'Saved Messages', ?)
+    `).run(savedId, user.id);
+    db.prepare(`
+      INSERT INTO chat_members (id, chat_id, user_id, role) VALUES (?, ?, ?, 'owner')
+    `).run(uuid(), savedId, user.id);
+  }
+
   const token = generateToken(user.id);
   res.json({ token, user: sanitizeUser(user) });
 });
