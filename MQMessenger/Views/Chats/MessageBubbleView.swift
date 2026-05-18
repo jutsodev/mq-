@@ -215,9 +215,28 @@ struct MessageBubbleView: View {
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
         .background(
-            BubbleShape(isOwn: isOwnMessage, cornerRadius: themeManager.messageCornerRadius)
-                .fill(isOwnMessage ? themeManager.bubbleColor : themeManager.incomingBubbleColor)
-                .shadow(color: .black.opacity(0.04), radius: 4, y: 2)
+            ZStack {
+                BubbleShape(isOwn: isOwnMessage, cornerRadius: themeManager.messageCornerRadius)
+                    .fill(isOwnMessage ? themeManager.bubbleColor : themeManager.incomingBubbleColor)
+
+                if isOwnMessage {
+                    BubbleShape(isOwn: true, cornerRadius: themeManager.messageCornerRadius)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(0.15),
+                                    Color.clear,
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                } else {
+                    BubbleShape(isOwn: false, cornerRadius: themeManager.messageCornerRadius)
+                        .fill(.ultraThinMaterial.opacity(0.3))
+                }
+            }
+            .shadow(color: .black.opacity(0.06), radius: 6, y: 3)
         )
     }
 

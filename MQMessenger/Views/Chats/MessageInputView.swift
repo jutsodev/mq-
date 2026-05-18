@@ -22,87 +22,194 @@ struct MessageInputView: View {
                 formatToolbar
             }
 
-            HStack(alignment: .bottom, spacing: 8) {
-                Button(action: { showAttachMenu = true }) {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.system(size: 28))
-                        .foregroundColor(themeManager.accentColor)
-                }
-                .confirmationDialog("attach".localized, isPresented: $showAttachMenu) {
-                    Button("photo".localized) { showMediaPicker = true }
-                    Button("file".localized) { showDocumentPicker = true }
-                    Button("cancel".localized, role: .cancel) {}
-                }
-
-                HStack(alignment: .bottom, spacing: 4) {
-                    TextField("message_placeholder".localized, text: $vm.messageText, axis: .vertical)
-                        .font(.system(size: 16))
-                        .lineLimit(1...20)
-                        .focused($isInputFocused)
-                        .onChange(of: vm.messageText) { _, _ in
-                            vm.handleTyping()
-                        }
-
-                    Button(action: { showFormatBar.toggle() }) {
-                        Image(systemName: "textformat")
-                            .font(.system(size: 18))
-                            .foregroundColor(showFormatBar ? themeManager.accentColor : .secondary)
-                    }
-
-                    Button(action: { vm.showEmojiPicker.toggle() }) {
-                        Image(systemName: "face.smiling")
-                            .font(.system(size: 22))
-                            .foregroundColor(.secondary)
-                    }
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(.ultraThinMaterial)
-
-                        RoundedRectangle(cornerRadius: 20)
-                            .stroke(Color.white.opacity(0.3), lineWidth: 0.5)
-                    }
-                )
-
-                Button(action: {
-                    Task { await vm.sendMessage() }
-                }) {
-                    Image(systemName: vm.messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                        ? "mic.fill" : "arrow.up.circle.fill")
-                        .font(.system(size: 28))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [themeManager.accentColor, themeManager.accentColor.opacity(0.7)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                }
-                .disabled(vm.messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && vm.replyingTo == nil)
+            if showAttachMenu {
+                attachmentMenu
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(.ultraThinMaterial)
+
+            inputBar
         }
+        .animation(.spring(response: 0.35, dampingFraction: 0.8), value: showAttachMenu)
+        .animation(.easeInOut(duration: 0.2), value: showFormatBar)
         .photosPicker(isPresented: $showMediaPicker, selection: $selectedPhoto, matching: .images)
         .onChange(of: selectedPhoto) { _, newItem in
             handlePhotoSelection(newItem)
         }
         .sheet(isPresented: $showDocumentPicker) {
             DocumentPickerView { urls in
-                for url in urls {
-                    handleFileSelection(url)
+                for url in urls { handleFileSelection(url) }
+            }
+        }
+    }
+
+    private var inputBar: some View {
+        HStack(alignment: .bottom, spacing: 10) {
+            Button(action: {
+                withAnimation { showAttachMenu.toggle() }
+            }) {
+                ZStack {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: showAttachMenu
+                                    ? [themeManager.accentColor, themeManager.accentColor.opacity(0.7)]
+                                    : [Color(.systemGray5), Color(.systemGray4)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 34, height: 34)
+
+                    Image(systemName: showAttachMenu ? "xmark" : "plus")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(showAttachMenu ? .white : .primary)
+                        .rotationEffect(.degrees(showAttachMenu ? 90 : 0))
                 }
+            }
+
+            HStack(alignment: .bottom, spacing: 6) {
+                TextField("message_placeholder".localized, text: $vm.messageText, axis: .vertical)
+                    .font(.system(size: 16))
+                    .lineLimit(1...20)
+                    .focused($isInputFocused)
+                    .onChange(of: vm.messageText) { _, _ in
+                        vm.handleTyping()
+                    }
+
+                Button(action: { showFormatBar.toggle() }) {
+                    Image(systemName: "textformat")
+                        .font(.system(size: 16))
+                        .foregroundColor(showFormatBar ? themeManager.accentColor : Color(.systemGray2))
+                }
+
+                Button(action: { vm.showEmojiPicker.toggle() }) {
+                    Image(systemName: "face.smiling")
+                        .font(.system(size: 20))
+                        .foregroundColor(Color(.systemGray2))
+                }
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .glassInputField()
+
+            Button(action: {
+                Task { await vm.sendMessage() }
+            }) {
+                ZStack {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [themeManager.accentColor, themeManager.accentColor.opacity(0.7)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 34, height: 34)
+                        .shadow(color: themeManager.accentColor.opacity(0.3), radius: 6, y: 3)
+
+                    Image(systemName: vm.messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                        ? "mic.fill" : "arrow.up")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundColor(.white)
+                }
+            }
+            .disabled(vm.messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && vm.replyingTo == nil)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .glassInputBar()
+    }
+
+    private var attachmentMenu: some View {
+        VStack(spacing: 16) {
+            HStack(spacing: 20) {
+                attachItem(icon: "camera.fill", label: "camera".localized, color: .red) {
+                    showAttachMenu = false
+                }
+                attachItem(icon: "photo.fill", label: "photo".localized, color: .purple) {
+                    showAttachMenu = false
+                    showMediaPicker = true
+                }
+                attachItem(icon: "doc.fill", label: "file".localized, color: .blue) {
+                    showAttachMenu = false
+                    showDocumentPicker = true
+                }
+                attachItem(icon: "location.fill", label: "location".localized, color: .green) {
+                    showAttachMenu = false
+                }
+            }
+
+            HStack(spacing: 20) {
+                attachItem(icon: "person.crop.circle.fill", label: "contact".localized, color: .orange) {
+                    showAttachMenu = false
+                }
+                attachItem(icon: "music.note", label: "audio".localized, color: .pink) {
+                    showAttachMenu = false
+                }
+                attachItem(icon: "chart.bar.fill", label: "poll".localized, color: .teal) {
+                    showAttachMenu = false
+                }
+
+                VStack(spacing: 6) {
+                    Color.clear.frame(width: 52, height: 52)
+                    Color.clear.frame(height: 14)
+                }
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 16)
+        .background(
+            ZStack {
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(.ultraThinMaterial)
+                    .opacity(0.95)
+
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(0.2),
+                                Color.white.opacity(0.05),
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(0.5),
+                                Color.white.opacity(0.1),
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 0.5
+                    )
+            }
+        )
+        .padding(.horizontal, 8)
+        .padding(.bottom, 4)
+    }
+
+    private func attachItem(icon: String, label: String, color: Color, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: 6) {
+                Image(systemName: icon)
+                    .attachMenuItem(color: color)
+
+                Text(label)
+                    .font(.system(size: 11))
+                    .foregroundColor(.primary)
             }
         }
     }
 
     private var formatToolbar: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 16) {
+            HStack(spacing: 14) {
                 formatButton("bold", tag: "b")
                 formatButton("italic", tag: "i")
                 formatButton("underline", tag: "u")
@@ -113,32 +220,31 @@ struct MessageInputView: View {
 
                 Button(action: { vm.messageFormat = vm.messageFormat == "html" ? "plain" : "html" }) {
                     Text("HTML")
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(.system(size: 12, weight: .semibold))
                         .foregroundColor(vm.messageFormat == "html" ? .white : themeManager.accentColor)
                         .padding(.horizontal, 10)
-                        .padding(.vertical, 4)
+                        .padding(.vertical, 5)
                         .background(
-                            RoundedRectangle(cornerRadius: 8)
+                            Capsule()
                                 .fill(vm.messageFormat == "html" ? themeManager.accentColor : Color.clear)
                         )
                         .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(themeManager.accentColor, lineWidth: 1)
+                            Capsule().stroke(themeManager.accentColor, lineWidth: 1)
                         )
                 }
             }
             .padding(.horizontal, 16)
-            .padding(.vertical, 6)
+            .padding(.vertical, 8)
         }
-        .background(.ultraThinMaterial)
+        .glassInputBar()
     }
 
     private func formatButton(_ icon: String, tag: String) -> some View {
         Button(action: { wrapSelection(tag: tag) }) {
             Image(systemName: icon)
-                .font(.system(size: 16, weight: .medium))
+                .font(.system(size: 15, weight: .medium))
                 .foregroundColor(themeManager.accentColor)
-                .frame(width: 32, height: 32)
+                .frame(width: 30, height: 30)
                 .background(
                     Circle().fill(Color(.systemGray6))
                 )
@@ -189,7 +295,7 @@ struct MessageInputView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
-        .background(.ultraThinMaterial)
+        .glassInputBar()
     }
 
     private func handlePhotoSelection(_ item: PhotosPickerItem?) {

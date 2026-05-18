@@ -120,7 +120,7 @@ function broadcastStatus(io, userId, status) {
 }
 
 function handleSendMessage(io, socket, userId, data, callback) {
-  const { chat_id, content, type, reply_to_id, media_url, media_type } = data;
+  const { chat_id, content, type, reply_to_id, media_url, media_type, format } = data;
 
   const member = db.prepare('SELECT * FROM chat_members WHERE chat_id = ? AND user_id = ?')
     .get(chat_id, userId);
@@ -159,6 +159,7 @@ function handleSendMessage(io, socket, userId, data, callback) {
     sender_username: sender.username,
     type: type || 'text',
     content,
+    format: format || 'plain',
     media_url: media_url || null,
     media_type: media_type || null,
     reply_to_id: reply_to_id || null,
