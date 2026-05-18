@@ -43,6 +43,7 @@ final class WebSocketService: ObservableObject {
         receiveMessage()
         startPingTimer()
 
+        reconnectAttempts = 0
         DispatchQueue.main.async {
             self.isConnected = true
         }
@@ -216,9 +217,18 @@ final class WebSocketService: ObservableObject {
         }
     }
 
+    private var reconnectAttempts = 0
+    private let maxReconnectAttempts = 10
+
     private func scheduleReconnect() {
+        guard reconnectAttempts < maxReconnectAttempts else {
+            print("WebSocket max reconnect attempts reached")
+            return
+        }
         reconnectTimer?.invalidate()
-        reconnectTimer = Timer.scheduledTimer(withTimeInterval: 3, repeats: false) { [weak self] _ in
+        reconnectAttempts += 1
+        let delay = min(Double(reconnectAttempts) * 2, 30)
+        reconnectTimer = Timer.scheduledTimer(withTimeInterval: delay, repeats: false) { [weak self] _ in
             guard let token = self?.token else { return }
             self?.connect(token: token)
         }

@@ -18,9 +18,8 @@ struct ChatsListView: View {
                         .padding(.bottom, 4)
 
                     if chatsVM.isLoading && chatsVM.chats.isEmpty {
-                        Spacer()
-                        ProgressView()
-                        Spacer()
+                        ShimmerLoadingList(count: 10)
+                            .padding(.top, 8)
                     } else if chatsVM.filteredChats.isEmpty {
                         Spacer()
                         EmptyStateView(

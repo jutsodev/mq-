@@ -8,18 +8,28 @@ struct HomeView: View {
 
     @State private var showSearch = false
     @State private var showNewChat = false
+    @State private var greeting: String = ""
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
+                    greetingHeader
                     storiesSection
                     quickActionsSection
-                    recentChatsSection
+
+                    if chatsVM.isLoading && chatsVM.chats.isEmpty {
+                        ShimmerLoadingList(count: 4)
+                            .glassCard(padding: 12)
+                    } else {
+                        recentChatsSection
+                    }
+
                     contactsPreviewSection
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
+                .padding(.bottom, 24)
             }
             .background(themeManager.backgroundColor)
             .navigationTitle("home".localized)
@@ -39,47 +49,74 @@ struct HomeView: View {
                 NewChatActionSheet()
                     .environmentObject(chatsVM)
             }
+            .onAppear { updateGreeting() }
+            .refreshable {
+                await chatsVM.loadChats()
+                await contactsVM.loadContacts()
+            }
+        }
+    }
+
+    private var greetingHeader: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(greeting)
+                    .font(.system(size: 14))
+                    .foregroundColor(.secondary)
+
+                Text(authManager.currentUser?.nameOrPhone ?? "MQ")
+                    .font(.system(size: 22, weight: .bold))
+            }
+
+            Spacer()
+
+            AvatarView(
+                name: authManager.currentUser?.nameOrPhone ?? "",
+                avatarURL: authManager.currentUser?.avatarURL,
+                size: 44,
+                showOnlineIndicator: true,
+                isOnline: true
+            )
         }
     }
 
     private var storiesSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("stories".localized)
-                .font(.system(size: 18, weight: .semibold))
+            SectionHeader(title: "stories".localized)
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 14) {
-                    VStack(spacing: 6) {
-                        ZStack {
-                            Circle()
-                                .fill(.ultraThinMaterial)
-                                .frame(width: 64, height: 64)
+                    Button(action: {}) {
+                        VStack(spacing: 6) {
+                            ZStack {
+                                Circle()
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [themeManager.accentColor.opacity(0.15), themeManager.accentColor.opacity(0.05)],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                                    .frame(width: 64, height: 64)
 
-                            Image(systemName: "plus")
-                                .font(.system(size: 24))
-                                .foregroundColor(themeManager.accentColor)
+                                Image(systemName: "plus")
+                                    .font(.system(size: 22, weight: .medium))
+                                    .foregroundColor(themeManager.accentColor)
+                            }
+
+                            Text("add".localized)
+                                .font(.system(size: 12))
+                                .foregroundColor(.secondary)
                         }
-
-                        Text("You")
-                            .font(.system(size: 12))
-                            .foregroundColor(.secondary)
                     }
+                    .buttonStyle(ScaleButtonStyle())
 
                     ForEach(sampleStoryUsers, id: \.self) { name in
                         VStack(spacing: 6) {
-                            AvatarView(name: name, avatarURL: nil, size: 64)
-                                .overlay(
-                                    Circle()
-                                        .stroke(
-                                            LinearGradient(
-                                                colors: [.blue, .purple],
-                                                startPoint: .topLeading,
-                                                endPoint: .bottomTrailing
-                                            ),
-                                            lineWidth: 2
-                                        )
-                                        .padding(-3)
-                                )
+                            ZStack {
+                                AnimatedGradientBorder(size: 68, lineWidth: 2)
+                                AvatarView(name: name, avatarURL: nil, size: 60)
+                            }
 
                             Text(name)
                                 .font(.system(size: 12))
@@ -95,16 +132,16 @@ struct HomeView: View {
 
     private var quickActionsSection: some View {
         HStack(spacing: 12) {
-            QuickActionButton(icon: "square.and.pencil", title: "new_chat".localized) {
+            QuickActionButton(icon: "square.and.pencil", title: "new_chat".localized, color: .blue) {
                 chatsVM.showNewChatSheet = true
             }
-            QuickActionButton(icon: "person.3.fill", title: "new_group".localized) {
+            QuickActionButton(icon: "person.3.fill", title: "new_group".localized, color: .green) {
                 chatsVM.showNewGroupSheet = true
             }
-            QuickActionButton(icon: "megaphone.fill", title: "new_channel".localized) {
+            QuickActionButton(icon: "megaphone.fill", title: "new_channel".localized, color: .purple) {
                 chatsVM.showNewChannelSheet = true
             }
-            QuickActionButton(icon: "person.badge.plus", title: "contacts".localized) {
+            QuickActionButton(icon: "person.badge.plus", title: "contacts".localized, color: .orange) {
                 showSearch = true
             }
         }
@@ -112,16 +149,7 @@ struct HomeView: View {
 
     private var recentChatsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text("chats".localized)
-                    .font(.system(size: 18, weight: .semibold))
-                Spacer()
-                if !chatsVM.chats.isEmpty {
-                    Text("\(chatsVM.chats.count)")
-                        .font(.system(size: 14))
-                        .foregroundColor(.secondary)
-                }
-            }
+            SectionHeader(title: "chats".localized, count: chatsVM.chats.count)
 
             if chatsVM.chats.isEmpty {
                 EmptyStateView(
@@ -134,7 +162,7 @@ struct HomeView: View {
                     NavigationLink(destination: ChatRoomView(chatId: chat.id, chatName: chat.displayName)) {
                         ChatRowView(chat: chat)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(ScaleButtonStyle(scale: 0.98))
                 }
             }
         }
@@ -143,14 +171,7 @@ struct HomeView: View {
 
     private var contactsPreviewSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text("contacts".localized)
-                    .font(.system(size: 18, weight: .semibold))
-                Spacer()
-                Text("\(contactsVM.contacts.count)")
-                    .font(.system(size: 14))
-                    .foregroundColor(.secondary)
-            }
+            SectionHeader(title: "contacts".localized, count: contactsVM.contacts.count)
 
             if contactsVM.contacts.isEmpty {
                 Text("no_contacts".localized)
@@ -200,21 +221,39 @@ struct HomeView: View {
             .prefix(6)
             .map { $0.displayName }
     }
+
+    private func updateGreeting() {
+        let hour = Calendar.current.component(.hour, from: Date())
+        if hour < 6 {
+            greeting = "good_night".localized
+        } else if hour < 12 {
+            greeting = "good_morning".localized
+        } else if hour < 18 {
+            greeting = "good_afternoon".localized
+        } else {
+            greeting = "good_evening".localized
+        }
+    }
 }
 
 struct QuickActionButton: View {
     let icon: String
     let title: String
+    var color: Color = .blue
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        Button(action: {
+            let generator = UIImpactFeedbackGenerator(style: .light)
+            generator.impactOccurred()
+            action()
+        }) {
             VStack(spacing: 8) {
                 Image(systemName: icon)
                     .font(.system(size: 20))
                     .foregroundStyle(
                         LinearGradient(
-                            colors: [.blue, .cyan],
+                            colors: [color, color.opacity(0.6)],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
@@ -230,6 +269,7 @@ struct QuickActionButton: View {
             .padding(.vertical, 14)
             .glassCard(padding: 0)
         }
+        .buttonStyle(BounceButtonStyle())
     }
 }
 

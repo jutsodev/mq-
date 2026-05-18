@@ -163,6 +163,16 @@ final class LocalizationManager: ObservableObject {
         "permissions": "Разрешения",
         "send_media": "Отправка медиа",
         "version": "Версия",
+        "add": "Добавить",
+        "good_morning": "Доброе утро",
+        "good_afternoon": "Добрый день",
+        "good_evening": "Добрый вечер",
+        "good_night": "Доброй ночи",
+        "load_more": "Загрузить ещё",
+        "info": "Информация",
+        "mark_as_read": "Прочитать",
+        "mark_all_read": "Прочитать все",
+        "clear_all": "Очистить все",
     ]
 
     private let en: [String: String] = [
@@ -310,6 +320,16 @@ final class LocalizationManager: ObservableObject {
         "permissions": "Permissions",
         "send_media": "Send Media",
         "version": "Version",
+        "add": "Add",
+        "good_morning": "Good morning",
+        "good_afternoon": "Good afternoon",
+        "good_evening": "Good evening",
+        "good_night": "Good night",
+        "load_more": "Load more",
+        "info": "Info",
+        "mark_as_read": "Mark as read",
+        "mark_all_read": "Mark all as read",
+        "clear_all": "Clear all",
     ]
 
     private init() {

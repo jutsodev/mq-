@@ -130,7 +130,9 @@ final class ChatsViewModel: ObservableObject {
             if let index = chats.firstIndex(where: { $0.id == chatId }) {
                 chats[index].unreadCount = 0
             }
-        } catch {}
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
 
     func joinByInvite(_ link: String) async -> String? {
