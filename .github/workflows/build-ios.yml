@@ -36,48 +36,37 @@ jobs:
           xcodebuild build \
             -project MQMessenger.xcodeproj \
             -scheme MQMessenger \
-            -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
             -configuration Release \
+            -derivedDataPath build/DerivedData \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
             | tail -50
 
-      - name: Archive App
+      - name: Package unsigned IPA
         run: |
           cd MQMessenger
-          xcodebuild archive \
-            -project MQMessenger.xcodeproj \
-            -scheme MQMessenger \
-            -archivePath build/MQMessenger.xcarchive \
-            -destination 'generic/platform=iOS' \
-            -configuration Release \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            SKIP_INSTALL=NO \
-            | tail -50
-
-      - name: Export IPA (unsigned)
-        run: |
-          cd MQMessenger
-          mkdir -p build/ipa
-          if [ -d "build/MQMessenger.xcarchive/Products/Applications" ]; then
-            cd build/MQMessenger.xcarchive/Products/Applications
-            mkdir -p Payload
-            cp -r MQMessenger.app Payload/ 2>/dev/null || cp -r *.app Payload/
-            zip -r ../../../ipa/MQMessenger.ipa Payload
+          APP_PATH=$(find build/DerivedData -name "MQMessenger.app" -type d | head -1)
+          if [ -n "$APP_PATH" ]; then
+            mkdir -p build/ipa/Payload
+            cp -r "$APP_PATH" build/ipa/Payload/
+            cd build/ipa
+            zip -r MQMessenger-unsigned.ipa Payload
+            echo "IPA created successfully"
+            ls -lh MQMessenger-unsigned.ipa
           else
-            echo "Archive Products not found at expected path, listing archive contents:"
-            find build/MQMessenger.xcarchive -type d | head -30
+            echo "ERROR: MQMessenger.app not found in DerivedData"
+            find build/DerivedData -name "*.app" -type d | head -10
+            exit 1
           fi
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
           name: MQMessenger-unsigned
-          path: MQMessenger/build/ipa/MQMessenger.ipa
-          if-no-files-found: warn
+          path: MQMessenger/build/ipa/MQMessenger-unsigned.ipa
+          if-no-files-found: error
 
   server-check:
     runs-on: ubuntu-latest
