@@ -74,7 +74,7 @@ struct LoginView: View {
                                 .font(.system(size: 18))
                                 .keyboardType(.phonePad)
                                 .glassTextField()
-                                .onChange(of: vm.phone) { _, newValue in
+                                .onChange(of: vm.phone) { newValue in
                                     vm.formatPhoneInput(newValue)
                                 }
                         }
